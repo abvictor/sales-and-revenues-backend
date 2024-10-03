@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id Int @id @default(autoincrement())
+  nome String
+  saldo Decimal @db.Decimal(10, 2)
+  
+  created_at DateTime
+  updated_at DateTime?
+
+
+  vendas Venda[]
+  recebimentos Recebimento[]
+
+  @@map("clientes")
+}
+
+model Venda {
+  id Int @id @default(autoincrement())
+  id_cliente Int
+  forma_pagamento String
+  
+  total Decimal @db.Decimal(10, 2)
+  desconto Decimal?
+  
+  created_at DateTime
+  updated_at DateTime?
+
+
+  item_venda ItemVenda[]
+  recebimentos Recebimento[]
+
+  cliente Cliente @relation(fields: [id_cliente], references: [id])
+
+
+  @@map("vendas")
+}
+
+model Produto {
+  id Int @id @default(autoincrement())
+  nome String
+  preco Decimal @db.Decimal(10, 2)
+  estoque Int
+
+  created_at DateTime
+  updated_at DateTime?
+  
+  item_venda ItemVenda[]
+  @@map("produtos")
+}
+
+model ItemVenda {
+  id_sequencia Int
+  
+  id_venda Int  
+  id_produto Int
+
+  quantidade_item Int
+  valor_item Decimal @db.Decimal(10, 2)
+
+  created_at DateTime
+  updated_at DateTime?
+
+  venda Venda @relation(fields: [id_venda], references: [id])
+  produto Produto @relation(fields: [id_produto], references: [id])
+
+  @@id([id_venda, id_sequencia])
+  @@map("item_venda")
+}
+
+model Recebimento{
+  id Int @default(autoincrement())
+  id_venda Int
+
+  total_venda Decimal @db.Decimal(10, 2)
+  total_recebido Decimal? @db.Decimal(10, 2)
+  
+  id_cliente  Int
+
+  status String
+
+  data_pagamento DateTime?
+  data_vencimento DateTime?
+
+  created_at DateTime
+  updated_at DateTime?
+
+  venda Venda @relation(fields: [id_venda], references: [id])
+  cliente Cliente @relation(fields: [id_cliente], references: [id])
+
+  @@id([id, id_venda])
+  @@map("recebimentos")  
+}
